@@ -3,6 +3,20 @@
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
+const { execSync } = require('child_process');
+
+// 获取全局安装的官方 claude.exe 路径，避免 PATH 冲突导致递归
+function getClaudeExePath() {
+    try {
+        const globalNpmRoot = execSync('npm root -g', { encoding: 'utf8' }).trim();
+        return path.join(globalNpmRoot, '@anthropic-ai', 'claude-code', 'bin', 'claude.exe');
+    } catch (error) {
+        console.error('无法找到 Claude Code 安装路径，请确保已全局安装 @anthropic-ai/claude-code');
+        process.exit(1);
+    }
+}
+
+const CLAUDE_EXE = getClaudeExePath();
 
 // 配置文件路径
 const SOURCES_CONFIG_PATH = path.join(require('os').homedir(), '.claude', 'claude-sources.json');
@@ -132,9 +146,8 @@ async function main() {
     if (args.length > 0) {
         // 直接启动claude，不进行选择
         const { spawn } = require('child_process');
-        const claude = spawn('npx', ['win-claude-code@latest', ...args], {
-            stdio: 'inherit',
-            shell: true
+        const claude = spawn(CLAUDE_EXE, args, {
+            stdio: 'inherit'
         });
 
         claude.on('exit', (code) => {
@@ -204,9 +217,8 @@ async function main() {
     // 启动claude
     console.log('\n正在启动 Claude Code...\n');
     const { spawn } = require('child_process');
-    const claude = spawn('npx', ['win-claude-code@latest'], {
-        stdio: 'inherit',
-        shell: true
+    const claude = spawn(CLAUDE_EXE, [], {
+        stdio: 'inherit'
     });
 
     claude.on('exit', (code) => {

@@ -29,7 +29,9 @@
 
 2. 将 `claude-sources.example.json` 复制到 `%USERPROFILE%\.claude\claude-sources.json`
 
-3. 确保 `%USERPROFILE%\Scripts` 在系统 PATH 环境变量中
+3. 确保 `%USERPROFILE%\Scripts` 在系统 PATH 环境变量中，**且排在 `%USERPROFILE%\AppData\Roaming\npm` 前面**。
+   
+   > **重要**：由于 `@anthropic-ai/claude-code` 也会在 `AppData\Roaming\npm` 目录下创建 `claude` 相关文件，如果该目录排在 `Scripts` 前面，运行 `claude` 时会优先调用官方版本而不是本选择器，导致功能失效或递归报错。请务必调整 PATH 顺序，确保 `Scripts` 在前面。
 
 ## 配置
 
@@ -132,6 +134,21 @@ claude-source-selector/
 
 A: 确保 `%USERPROFILE%\Scripts` 目录已添加到系统 PATH 环境变量。添加后需要重启终端。
 
+### Q: 运行 `claude` 提示"系统找不到指定的路径"？
+
+A: 这通常是因为 PATH 中存在多个 `claude` 命令，且 `AppData\Roaming\npm` 排在 `Scripts` 前面，导致系统优先找到了官方安装的入口文件。解决方法：
+
+1. **调整 PATH 顺序**：将 `%USERPROFILE%\Scripts` 移到 `%USERPROFILE%\AppData\Roaming\npm` 前面：
+   ```bash
+   setx PATH "%USERPROFILE%\Scripts;%PATH%"
+   ```
+   然后重启终端。
+
+2. **或者直接使用完整路径运行**：
+   ```bash
+   %USERPROFILE%\Scripts\claude.bat
+   ```
+
 ### Q: 安装 MCP 时报错？
 
 A: 这是因为自定义的 `claude.bat` 覆盖了原版命令。解决方法：
@@ -143,7 +160,7 @@ A: 这是因为自定义的 `claude.bat` 覆盖了原版命令。解决方法：
 
 2. 或者使用 npx：
    ```bash
-   npx win-claude-code@latest mcp add xxx
+   npx @anthropic-ai/claude-code mcp add xxx
    ```
 
 ### Q: 如何添加新的 API 源？
